@@ -1,0 +1,9 @@
+.git
+.github
+__pycache__
+*.pyc
+.ipynb_checkpoints
+figures_external
+results_external
+*.pdf
+*.pptx

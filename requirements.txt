@@ -1,0 +1,13 @@
+# Core study: simulator, identification, controller, studies, tests, figures.
+numpy>=1.24,<3
+scipy>=1.10,<2
+pandas>=2.0,<4
+matplotlib>=3.7,<4
+
+# Interactive demo (app/) and HTTP service (service/).
+# Kept in this file rather than a second one because Streamlit Community Cloud
+# and Hugging Face Spaces both install from requirements.txt at the repo root.
+streamlit>=1.32,<2
+fastapi>=0.110,<1
+uvicorn[standard]>=0.27,<1
+pydantic>=2.6,<3
