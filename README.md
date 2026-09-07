@@ -40,6 +40,12 @@ happens when an operator asks for a rate the well cannot safely deliver.
 
 ---
 
+![Inside one controller decision](figures/controller_decisions.png)
+
+*One interval of Scenario C, opened up: the 40 h forecast the controller committed to, the candidate plans it rejected because their trajectory left the envelope, and the safe set shrinking from 451 plans to ~200 as the well approaches its limit.*
+
+---
+
 ## Headline results
 
 | | |
@@ -194,10 +200,10 @@ by name rather than quietly tolerated.
 
 On one machine those cells come back bit-for-bit identical. Across machines they do not
 quite, and the honest version is more interesting than the tidy one: the nonlinear least
-squares in identification.py converges to a fractionally different point when numpy
+squares in `identification.py` converges to a fractionally different point when numpy
 links a different BLAS, and that difference propagates into every table downstream.
 Measured Windows against the Linux CI runner, the largest relative disagreement anywhere
-in the 27 tables is **6.2e-8** - eight orders of magnitude below the two decimal places
+in the 27 tables is **6.2e-8** — eight orders of magnitude below the two decimal places
 these results are ever quoted to. So CI asserts agreement to 1e-6 relative, about 16x
 tighter than the largest difference observed, and prints the figure it actually measured
 on every run.
@@ -236,6 +242,10 @@ Q, WHP, FLP, BHP = simulator.step(choke_position)
 
 ### 2. Control-oriented model (`src/identification.py`)
 
+![Open-loop step test and the identified Hammerstein model](figures/step_test_identification.png)
+
+*The designed 8-level step test, and the identified model free-run against it. Grey is the plant, blue is the model running open loop with no feedback.*
+
 The controller never sees the simulator's physics. We run a designed 8-level
 open-loop step test (20 → 70 %, both directions, 40–55 h holds) and fit a
 **Hammerstein** model per output:
@@ -260,6 +270,10 @@ tests, then free-run against the Honeywell reference dataset it had never seen.
 
 ### 3. Operating envelope
 
+![Steady-state operating envelope](figures/operating_envelope.png)
+
+*Production capacity is limited by BHP, not by the choke: the valve can still open another 30 % when the well hits its safe ceiling.*
+
 | Variable | Limits | Rationale |
 |---|---|---|
 | WHP | 200 – 320 psi | slugging / flowline entry ↔ wellhead equipment rating |
@@ -272,6 +286,10 @@ fact: the well is **feasible only for choke ∈ [15.5 %, 70.65 %]**, and the
 choke, which can still open another 30 %.
 
 ### 4. Controller (`src/controller.py`)
+
+![Two-layer control architecture](figures/control_architecture.png)
+
+*Layer 1 answers "where should the well end up?"; layer 2 answers "how do we get there without ever leaving the envelope?"*
 
 **Layer 1 — Steady-State Target Optimiser (SSTO).** Every interval, scan the
 choke range on the identified gain curves, keep only openings whose predicted
@@ -293,6 +311,10 @@ predicted violation and take the move that returns the well to the envelope
 fastest.
 
 ### 5. Scenario results
+
+![Scenario C - infeasible target](figures/scenario_C.png)
+
+*Scenario C: 200 bbl/hr is requested, 165 is safe. BHP settles onto its limit rather than through it. Scenarios A and B are in `figures/`.*
 
 | | A — Start-up | B — Target change | C — Infeasible target |
 |---|---|---|---|
@@ -411,6 +433,10 @@ silently.
 
 ### 3. So we tested whether our limits matter at all
 
+![200 randomised operating envelopes](figures/limit_sensitivity.png)
+
+*Whatever the limits, the controller finds that envelope's own ceiling - and the binding constraint moves between WHP, BHP and FLP.*
+
 The organisers did not supply the official ranges, so defending six invented
 numbers would always be the weakest part of this submission. Instead we tested
 whether the *result* depends on them.
@@ -463,6 +489,10 @@ tested. Four questions, four studies.
 
 ### 1. Better than what?
 
+![MPC against a tuned PI and a cautious operator](figures/baseline_comparison.png)
+
+*The three architectures separate only in Scenario C, which is exactly when a constraint binds.*
+
 Both baselines get the same plant, the same noise seeds and the same
 ±5 %/interval ramp limit. The PI is IMC-tuned in velocity form (inherently
 anti-windup) — a good-faith controller, not a straw man. What it cannot have is
@@ -482,6 +512,10 @@ architectures separate only when a constraint actually binds — which is exactl
 when it matters.
 
 ### 2. What if the model is wrong?
+
+![Monte-Carlo plant-model mismatch](figures/montecarlo_mismatch.png)
+
+*150 randomised models per scenario. Every failure has the same signature: tau_BHP under-estimated by more than ~31 %.*
 
 150 randomised controllers per scenario, with the internal model corrupted far
 beyond anything a real re-identification would leave: incremental gain × U(0.7,
@@ -530,6 +564,10 @@ runs where the set empties are the deliberate RECOVERY demonstrations, which
 
 ### 4. Where does it break?
 
+![Failure boundary sweeps](figures/breaking_point.png)
+
+*One design parameter at a time, pushed until violations appear.*
+
 | Parameter swept | Result |
 |---|---|
 | Prediction horizon P | safe from 5 h to 50 h |
@@ -538,6 +576,10 @@ runs where the set empties are the deliberate RECOVERY demonstrations, which
 | Ramp-rate limit | safe from 0.5 to 10 %/interval — a tighter limit is strictly safer |
 
 ### 5. What if the challenge's assumptions fail?
+
+![Disturbances and instrument faults](figures/stress_tests.png)
+
+*Reservoir decline, a water-cut step, a frozen transmitter and a two-tag IO-card failure - with the bad-data layer on and off.*
 
 The brief says to assume constant reservoir properties, no changing water cut,
 and healthy instrumentation. All three are false on a real well.
@@ -561,6 +603,10 @@ dangerous fault is the correlated one, which is why F4 exists.
 ---
 
 ## The monitored variables the brief asks you to recognise
+
+![Monitored variables](figures/monitored_variables.png)
+
+*WHT and annulus pressure move in the opposite direction to the three constrained pressures as the choke opens.*
 
 The problem statement lists Wellhead Temperature and Annulus Pressure as
 *"Additional Industrial Variables (Informational)"* that are **not** active
