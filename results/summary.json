@@ -1,0 +1,118 @@
+{
+  "limits": {
+    "u": 70.65,
+    "Q": 166.19506345482273,
+    "WHP": 205.4403509466365,
+    "FLP": 148.67765172499998,
+    "BHP": 2850.274001492336,
+    "binding": "BHP_min",
+    "u_min_feasible": 15.5,
+    "u_max_feasible": 70.65,
+    "Q_min_feasible": 62.185281625805885
+  },
+  "scenarios": {
+    "A": {
+      "steps": 90,
+      "overshoot_pct_of_step": 1.93,
+      "safety_margin_pct_of_span": 5.88,
+      "tightest_constraint": "BHP",
+      "settled_choke_move_std_pct": 0.045,
+      "settled_choke_move_max_pct": 0.25,
+      "final_target_requested": 100.0,
+      "final_target_achievable": 99.99460999799082,
+      "final_rate_mean": 100.22940106201551,
+      "steady_state_offset": 0.23479106402469085,
+      "IAE_vs_achievable": 2.255090785374256,
+      "settling_time_h": 14.0,
+      "constraint_violations_true": 0,
+      "constraint_violations_measured": 0,
+      "max_abs_move_pct": 5.0,
+      "mean_abs_move_pct": 0.20555555555555555,
+      "total_choke_travel_pct": 18.5,
+      "min_BHP": 3135.6093638033926,
+      "min_WHP": 268.16794100474317,
+      "min_FLP": 186.1491991059615,
+      "modes": [
+        "TRACKING"
+      ]
+    },
+    "B": {
+      "steps": 140,
+      "overshoot_pct_of_step": 2.25,
+      "safety_margin_pct_of_span": 15.51,
+      "tightest_constraint": "BHP",
+      "settled_choke_move_std_pct": 0.112,
+      "settled_choke_move_max_pct": 0.25,
+      "final_target_requested": 150.0,
+      "final_target_achievable": 149.99792295017212,
+      "final_rate_mean": 150.16763685423422,
+      "steady_state_offset": 0.16971390406209252,
+      "IAE_vs_achievable": 2.670111927133129,
+      "settling_time_h": 16.0,
+      "constraint_violations_true": 0,
+      "constraint_violations_measured": 0,
+      "max_abs_move_pct": 5.0,
+      "mean_abs_move_pct": 0.275,
+      "total_choke_travel_pct": 38.5,
+      "min_BHP": 2919.7728887779754,
+      "min_WHP": 225.02956937932538,
+      "min_FLP": 159.6970215353899,
+      "modes": [
+        "TRACKING"
+      ]
+    },
+    "C": {
+      "steps": 140,
+      "overshoot_pct_of_step": 2.41,
+      "safety_margin_pct_of_span": 1.01,
+      "tightest_constraint": "BHP",
+      "settled_choke_move_std_pct": 0.258,
+      "settled_choke_move_max_pct": 1.0,
+      "final_target_requested": 200.0,
+      "final_target_achievable": 165.17783471603815,
+      "final_rate_mean": 164.89190230380325,
+      "steady_state_offset": -0.2859324122348994,
+      "IAE_vs_achievable": 2.4868441445332907,
+      "settling_time_h": 16.0,
+      "constraint_violations_true": 0,
+      "constraint_violations_measured": 2,
+      "max_abs_move_pct": 5.0,
+      "mean_abs_move_pct": 0.2910714285714286,
+      "total_choke_travel_pct": 40.75,
+      "min_BHP": 2854.5412952621,
+      "min_WHP": 206.11862130972753,
+      "min_FLP": 148.64208668569995,
+      "modes": [
+        "CONSTRAINED",
+        "TRACKING"
+      ]
+    },
+    "RECOVERY": {
+      "steps": 90,
+      "overshoot_pct_of_step": 2.73,
+      "safety_margin_pct_of_span": 1.9,
+      "tightest_constraint": "BHP",
+      "settled_choke_move_std_pct": 0.045,
+      "settled_choke_move_max_pct": 0.25,
+      "final_target_requested": 100.0,
+      "final_target_achievable": 99.99642415295537,
+      "final_rate_mean": 100.23017096313515,
+      "steady_state_offset": 0.23374681017978105,
+      "IAE_vs_achievable": 3.6659361542778286,
+      "settling_time_h": 14.0,
+      "constraint_violations_true": 0,
+      "constraint_violations_measured": 0,
+      "max_abs_move_pct": 5.0,
+      "mean_abs_move_pct": 0.32222222222222224,
+      "total_choke_travel_pct": 29.0,
+      "min_BHP": 3135.6770518430153,
+      "min_WHP": 268.15302442111386,
+      "min_FLP": 185.89765997716265,
+      "modes": [
+        "RECOVERY",
+        "TRACKING"
+      ],
+      "hours_to_re_enter_envelope": 5.0
+    }
+  }
+}

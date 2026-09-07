@@ -1,0 +1,4 @@
+scenario,intervals,min_feasible_candidates,empty_set_intervals
+A,90,289,0
+B,140,449,0
+C,140,153,0

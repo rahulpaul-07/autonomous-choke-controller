@@ -1,0 +1,6 @@
+mitigation,runs,runs_violating,worst_excursion_psi,mean_rate_bbl_hr,production_cost_bbl_hr
+nominal (back-off 5 psi),60,5,1.16,164.76,0.0
+blunt: back-off 8 psi,60,0,0.0,163.88,0.88
+blunt: back-off 12 psi,60,0,0.0,160.88,3.88
+targeted: identified τ_BHP × 1.25,60,1,0.38,164.39,0.37
+targeted: identified τ_BHP × 1.50,60,0,0.0,163.83,0.93

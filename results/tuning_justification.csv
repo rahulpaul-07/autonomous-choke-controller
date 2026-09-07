@@ -1,0 +1,13 @@
+knob,value,setting,settled_rate,violations,IAE_vs_achievable,total_choke_travel,min_feasible_candidates,ms_per_interval
+control horizon M,1.0,M = 1,165.07,0,3.51,103.8,8,0.32
+control horizon M,2.0,M = 2,164.89,0,2.49,40.8,153,0.71
+control horizon M,3.0,M = 3,164.89,0,2.49,40.8,153,0.78
+first-move grid n1,11.0,11 x 11 candidates,164.37,0,2.7,35.0,40,0.43
+first-move grid n1,21.0,21 x 11 candidates,164.7,0,2.52,36.5,85,0.55
+first-move grid n1,41.0,41 x 11 candidates,164.89,0,2.49,40.8,153,0.82
+first-move grid n1,81.0,81 x 11 candidates,164.96,0,2.47,42.1,272,1.23
+move suppression w_move,0.0,w_move = 0,165.04,0,2.19,160.8,66,0.73
+move suppression w_move,5.0,w_move = 5,164.89,0,2.42,43.2,154,0.88
+move suppression w_move,15.0,w_move = 15,164.89,0,2.49,40.8,153,0.77
+move suppression w_move,40.0,w_move = 40,164.9,0,2.55,38.2,153,0.79
+move suppression w_move,100.0,w_move = 100,164.89,0,2.67,35.8,159,0.85
