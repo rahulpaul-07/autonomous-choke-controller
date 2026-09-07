@@ -14,7 +14,7 @@ the number.**
 [The 13 assumptions](ASSUMPTIONS.md) ·
 [How it was built, including what went wrong](DEVELOPMENT_LOG.md)
 
-Written for Honeywell Campus Connect, hackathon round 2.
+Written for Honeywell Campus Connect, hackathon round 2. Rahul Paul.
 
 ---
 
