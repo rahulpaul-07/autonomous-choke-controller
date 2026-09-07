@@ -189,9 +189,18 @@ docker run --rm -p 8501:8501 choke-controller \
 `figures/` and `results/` are committed, and CI deletes them, regenerates everything
 from source, and compares the new tables against the committed ones cell by cell
 (`tools/check_reproducibility.py`). Of the 62,154 numeric cells across the 27 tables,
-62,142 are compared and every one comes back identical. The 12 that are not compared
-are a single wall-clock timing column, which is machine-dependent by nature and is
-skipped by name rather than quietly tolerated.
+62,142 are compared; the 12 that are not are a single wall-clock timing column, skipped
+by name rather than quietly tolerated.
+
+On one machine those cells come back bit-for-bit identical. Across machines they do not
+quite, and the honest version is more interesting than the tidy one: the nonlinear least
+squares in identification.py converges to a fractionally different point when numpy
+links a different BLAS, and that difference propagates into every table downstream.
+Measured Windows against the Linux CI runner, the largest relative disagreement anywhere
+in the 27 tables is **6.2e-8** - eight orders of magnitude below the two decimal places
+these results are ever quoted to. So CI asserts agreement to 1e-6 relative, about 16x
+tighter than the largest difference observed, and prints the figure it actually measured
+on every run.
 
 The same workflow re-runs all four test scripts on Python 3.10 and 3.12 on every
 push, so the headline numbers below cannot drift away from the code that produced
