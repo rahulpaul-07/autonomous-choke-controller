@@ -1,0 +1,52 @@
+{
+  "_README": [
+    "THE OFFICIAL SAFE OPERATING LIMITS WERE NOT PUBLISHED WITH THE PROBLEM",
+    "STATEMENT. The brief names WHP, FLP and BHP as active constraints but gives",
+    "no numeric ranges. The values below are engineering placeholders, derived as",
+    "described in _derivation, and every one of them lives in this file alone.",
+    "",
+    "TO ADOPT THE OFFICIAL NUMBERS: edit the six values below and re-run",
+    "    python src/scenarios.py && python src/studies.py",
+    "Nothing in the controller, the identification or the studies hard-codes a",
+    "limit, so no other file needs to change."
+  ],
+
+  "_derivation": {
+    "observed_in_reference_dataset": {
+      "WHP_psi": [216.3, 270.0],
+      "FLP_psi": [154.0, 188.6],
+      "BHP_psi": [2882.7, 3133.3]
+    },
+    "rule": [
+      "Bracket the operating region exercised by the reference dataset, leaving",
+      "roughly one further step of choke travel of headroom on each side, so that",
+      "the envelope is two-sided and the dataset itself is comfortably feasible.",
+      "Each limit is then attached to a physical failure mode (below), so the",
+      "numbers can be replaced by real asset values without changing their meaning."
+    ],
+    "consequences_worth_knowing": [
+      "BHP_min binds first as the choke opens - production is limited by drawdown,",
+      "not by the valve. Max safe rate 166.2 bbl/hr at 70.65 % choke.",
+      "At that point WHP sits only 5.4 psi from its own limit, which is why a",
+      "single corrupted pressure transmitter causes little harm (see stress tests).",
+      "Feasible choke window: 15.5 % to 70.65 %."
+    ]
+  },
+
+  "limits": {
+    "WHP_min": {"value": 200.0, "unit": "psi", "rationale": "below this the well is prone to slugging and struggles to enter the flowline"},
+    "WHP_max": {"value": 320.0, "unit": "psi", "rationale": "wellhead / christmas-tree equipment pressure rating"},
+    "FLP_min": {"value": 140.0, "unit": "psi", "rationale": "minimum pressure to transport produced fluid to the separator"},
+    "FLP_max": {"value": 210.0, "unit": "psi", "rationale": "gathering-system rating downstream of the choke"},
+    "BHP_min": {"value": 2850.0, "unit": "psi", "rationale": "maximum allowable drawdown - sand production and bubble-point risk"},
+    "BHP_max": {"value": 3300.0, "unit": "psi", "rationale": "minimum drawdown needed for stable inflow from the reservoir"}
+  },
+
+  "actuator": {
+    "choke_min_pct": 0.0,
+    "choke_max_pct": 100.0,
+    "ramp_rate_limit_pct_per_interval": 5.0,
+    "control_interval_hours": 1.0,
+    "_note": "These four ARE specified in the problem statement."
+  }
+}
