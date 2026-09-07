@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Study + test suite (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Part I -- simulator, identification, scenarios A/B/C
+        run: python src/scenarios.py
+
+      - name: Part II -- baselines, robustness, limits, stress, tuning
+        run: python src/studies.py
+
+      - name: Literal spec compliance
+        run: python tests/test_spec_compliance.py
+
+      - name: Roll-out equivalence + scenario regression
+        run: python tests/test_rollout.py
+
+      - name: Every headline number in the README, checked against results/
+        run: python tests/test_reported_numbers.py
+
+      - name: Whole pipeline through a foreign simulator
+        run: python tests/test_external_simulator.py
+
+      - name: Upload regenerated figures and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: study-output-py${{ matrix.python-version }}
+          path: |
+            figures/
+            results/
+          if-no-files-found: warn
+
+  reproducibility:
+    name: Committed results regenerate identically
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set the committed results aside, then delete them
+        run: |
+          cp -r results results_committed
+          rm -rf results figures
+
+      - name: Regenerate everything from source
+        run: |
+          python src/scenarios.py
+          python src/studies.py
+
+      - name: Compare cell by cell
+        run: python tools/check_reproducibility.py results_committed results
