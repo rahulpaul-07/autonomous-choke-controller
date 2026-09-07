@@ -9,7 +9,7 @@ the number.**
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**[Try it in the browser](https://autonomous-choke-controller.streamlit.app)** ·
+**[Try it in the browser](https://autonomous-choke-controller-v1.streamlit.app)** ·
 [Read the executed notebook](Autonomous_Choke_Control.ipynb) ·
 [The 13 assumptions](ASSUMPTIONS.md) ·
 [How it was built, including what went wrong](DEVELOPMENT_LOG.md)
