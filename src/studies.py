@@ -18,7 +18,6 @@ Parts
 from __future__ import annotations
 
 import copy
-import json
 import os
 import sys
 
@@ -70,13 +69,13 @@ def run_baselines(model=None, save=True, verbose=True):
                      "total_choke_travel"]].round(2).to_string())
         c = table.loc["C"]
         gain = c.loc["MPC", "mean_rate_last30"] - c.loc["OPERATOR", "mean_rate_last30"]
-        print(f"\n  Scenario C (production limited by BHP):")
+        print("\n  Scenario C (production limited by BHP):")
         print(f"    PI       : {int(c.loc['PI','violating_intervals'])} violating intervals, "
               f"BHP {c.loc['PI','BHP_shortfall']:.0f} psi below its limit — a rate PI "
               f"structurally cannot see a pressure constraint")
         print(f"    OPERATOR : safe, but {gain:.2f} bbl/hr "
               f"({100*gain/c.loc['OPERATOR','mean_rate_last30']:.1f} %) below the MPC")
-        print(f"    MPC      : 0 violations AND the highest safe rate")
+        print("    MPC      : 0 violations AND the highest safe rate")
     if save:
         table.to_csv(os.path.join(RES, "baseline_comparison.csv"))
         plot_baselines(traces, ENV, path=os.path.join(FIG, "baseline_comparison.png"))
@@ -103,7 +102,7 @@ def run_mismatch(model=None, n_trials=150, save=True, verbose=True):
                   f"vs {mc.tau_BHP.mean():.3f} across all runs")
             print(f"    every failure has τ_BHP factor < {bad.tau_BHP.max():.2f} — the "
                   f"controller believes BHP settles faster than it really does,")
-            print(f"    so it stops backing off before the pressure has finished falling.")
+            print("    so it stops backing off before the pressure has finished falling.")
             print(f"    Worst excursion overall: {bad.worst_excursion_psi.max():.2f} psi "
                   f"on a {ENV.BHP_min:.0f} psi limit "
                   f"({100*bad.worst_excursion_psi.max()/ENV.BHP_min:.3f} %).")
@@ -242,16 +241,12 @@ def run_limit_sensitivity(model=None, n_envelopes: int = 200, save=True,
     cfg_prop = copy.copy(CFG); cfg_prop.backoff_frac = 0.011
     df_prop = sweep(cfg_prop, "span-proportional 1.1 %")
 
-    rng = np.random.default_rng(seed)
-    rows = []
-    tried = 0
-
     if verbose:
         print(f"\n=== Does the answer depend on the limits we chose? "
               f"({len(df)} randomised operating envelopes) ===")
         print(f"  envelopes with any constraint violation : "
               f"{int((df.violating_intervals > 0).sum())} / {len(df)}")
-        print(f"  production achieved, as % of each envelope's own max safe rate:")
+        print("  production achieved, as % of each envelope's own max safe rate:")
         print(f"      mean {df.pct_of_max_safe.mean():.2f} %   "
               f"min {df.pct_of_max_safe.min():.2f} %   "
               f"max {df.pct_of_max_safe.max():.2f} %")
@@ -270,8 +265,8 @@ def run_limit_sensitivity(model=None, n_envelopes: int = 200, save=True,
         g = df.groupby("binding_constraint").pct_of_max_safe.mean().round(2)
         for k, v in g.items():
             print(f"      {k:9s} binding -> {v:6.2f} % of max safe rate")
-        print(f"\n  So we tried the obvious fix - make the back-off proportional to each")
-        print(f"  variable's span (1.1 %) instead of a flat 5 psi:")
+        print("\n  So we tried the obvious fix - make the back-off proportional to each")
+        print("  variable's span (1.1 %) instead of a flat 5 psi:")
         nf = int((df.violating_intervals > 0).sum())
         npr = int((df_prop.violating_intervals > 0).sum())
         print(f"      fixed 5 psi        : {df.pct_of_max_safe.mean():6.2f} % of max safe rate, "

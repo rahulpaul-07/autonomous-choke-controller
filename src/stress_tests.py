@@ -31,7 +31,6 @@ controller should detect the fault, stop trusting the tag, and - if it persists
 """
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 
 from controller import ChokeMPC, MPCConfig, run_closed_loop

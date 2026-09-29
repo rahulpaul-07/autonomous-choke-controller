@@ -1,17 +1,26 @@
-.PHONY: install study tests reproduce app serve docker clean
+.PHONY: install dev lint study tests reproduce app serve docker clean
 
 install:
 	pip install -r requirements.txt
+
+dev:              ## runtime plus test and lint tooling
+	pip install -r requirements-dev.txt
+
+lint:
+	ruff check .
 
 study:            ## Part I then Part II: regenerates every figure and result table
 	python src/scenarios.py
 	python src/studies.py
 
-tests:            ## the four test scripts, in the order they are cheapest to fail
+tests:            ## every test script, in the order they are cheapest to fail
 	python tests/test_spec_compliance.py
 	python tests/test_rollout.py
 	python tests/test_reported_numbers.py
 	python tests/test_external_simulator.py
+	python tests/test_config_and_model.py
+	python tests/test_service.py
+	python tests/test_app.py
 
 reproduce:        ## delete the outputs, rebuild them, prove they come back identical
 	rm -rf results_committed && cp -r results results_committed

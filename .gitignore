@@ -19,3 +19,8 @@ results_external/
 
 # NOTE: figures/ and results/ are deliberately committed.
 # They are the evidence the README and tests/test_reported_numbers.py assert against.
+
+# Local tooling output
+.gstack/
+.ruff_cache/
+.streamlit/secrets.toml

@@ -40,7 +40,7 @@ sys.path.insert(0, HERE)
 
 from controller import ChokeMPC, MPCConfig, SteadyStateTargetOptimiser, run_closed_loop
 from external_simulator import ExternalSimulator, load_simulator
-from identification import OUTPUTS, cross_validate, identify, run_step_test
+from identification import identify, run_step_test
 from plotting import plot_scenario, plot_step_test
 from simulator import OperatingEnvelope
 
@@ -71,7 +71,7 @@ def main(spec: str, save: bool = True):
     env = OperatingEnvelope.load()
     make_sim = load_simulator(spec)
 
-    probe = sanity_check(make_sim, cfg)
+    sanity_check(make_sim, cfg)
 
     # -- 2. step test on THEIR simulator ------------------------------------
     print("2. Running the open-loop step test on the provided simulator")

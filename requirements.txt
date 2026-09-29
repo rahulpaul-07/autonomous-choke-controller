@@ -7,7 +7,8 @@ matplotlib>=3.7,<4
 # Interactive demo (app/) and HTTP service (service/).
 # Kept in this file rather than a second one because Streamlit Community Cloud
 # and Hugging Face Spaces both install from requirements.txt at the repo root.
-streamlit>=1.32,<2
+streamlit>=1.55,<2     # oldest release the demo and its tests are verified on
+altair>=5.4,<7         # interactive trend charts in the demo (also a Streamlit dependency)
 fastapi>=0.110,<1
 uvicorn[standard]>=0.27,<1
 pydantic>=2.6,<3

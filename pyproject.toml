@@ -1,0 +1,14 @@
+[tool.ruff]
+target-version = "py310"
+extend-exclude = ["*.ipynb", ".gstack"]
+
+[tool.ruff.lint]
+# Correctness only: syntax errors, undefined names, unused code. The study's
+# dense numeric style (aligned columns, one-line setups) is deliberate, so the
+# pycodestyle layout rules are not enforced.
+select = ["E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# These scripts put src/ on sys.path before importing from it.
+"app/*" = ["E402"]
+"service/*" = ["E402"]

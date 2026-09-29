@@ -1,0 +1,5 @@
+# Test and lint tooling, on top of the runtime requirements.
+-r requirements.txt
+httpx>=0.27,<1        # fastapi.testclient
+ruff>=0.6,<1
+pip-audit>=2.7,<3

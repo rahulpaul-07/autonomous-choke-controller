@@ -277,7 +277,7 @@ def plot_montecarlo(mc: pd.DataFrame, path: str | None = None):
     a = ax[0]
     a.bar(["Scenario B\n(target change)", "Scenario C\n(at the constraint)"],
           [(b.violating_intervals > 0).mean() * 100, (c.violating_intervals > 0).mean() * 100],
-          color=[C_GREEN_OK := "#2E7D32", "#E8820C"], width=0.55)
+          color=["#2E7D32", "#E8820C"], width=0.55)
     for i, v in enumerate([(b.violating_intervals > 0).mean() * 100,
                            (c.violating_intervals > 0).mean() * 100]):
         a.text(i, v + 0.15, f"{v:.1f} %", ha="center", fontweight="bold", fontsize=10)

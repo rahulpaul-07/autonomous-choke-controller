@@ -40,8 +40,12 @@ from __future__ import annotations
 import importlib
 import sys
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 _ALIASES = {
     "Q":   ("q", "oil", "oilrate", "oil_rate", "rate", "oilrate_bbl_hr", "q_bbl_hr"),

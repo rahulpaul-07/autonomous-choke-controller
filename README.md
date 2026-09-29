@@ -101,6 +101,9 @@ tests/
   test_reported_numbers.py          asserts every headline number in this README against results/
   test_spec_compliance.py           asserts the code against the literal wording of the brief
   test_external_simulator.py        drives the whole pipeline through a foreign simulator
+  test_config_and_model.py          configuration guards, the move grid, the committed-model loader
+  test_service.py                   HTTP service: validation, session bounds, error hygiene
+  test_app.py                       the web demo renders every view and preset, numbers match
   mock_provided_simulator.py        a deliberately different simulator, used by that test
 
 app/streamlit_app.py                the interactive demo linked at the top of this file
@@ -118,8 +121,10 @@ figures/                            16 PNGs used in the notebook and the deck
     controller_decisions.png        what the controller predicted, and what it rejected
 results/                            27 tables: per-scenario CSVs, identified model, KPIs, sweeps
 
-Dockerfile                          one image for the study, the demo and the service
-.github/workflows/ci.yml            the study, all four test scripts, and the reproducibility check
+Dockerfile                          one image for the study, the demo and the service (non-root)
+.streamlit/config.toml              demo theme; tracebacks hidden from visitors
+.github/workflows/ci.yml            lint, dependency audit, the study, every test script, reproducibility
+.github/workflows/keep-alive.yml    visits the hosted demo every 6 h so it never cold-starts
 ```
 
 ## How to run
@@ -143,9 +148,13 @@ python tests/test_spec_compliance.py    # every literal requirement in the brief
 python tests/test_rollout.py            # roll-out equivalence + scenario regression
 python tests/test_reported_numbers.py   # every headline number, checked against results/
 python tests/test_external_simulator.py # a foreign simulator and foreign limits, end to end
+python tests/test_config_and_model.py   # config guards, move grid, committed-model loader
+python tests/test_service.py            # HTTP service (needs requirements-dev.txt)
+python tests/test_app.py                # the web demo, headless
 ```
 
-`make study`, `make tests` and `make reproduce` wrap all of the above.
+`make study`, `make tests`, `make lint` and `make reproduce` wrap all of the above;
+`make dev` installs the test and lint tooling from `requirements-dev.txt`.
 
 **Swapping in a different simulator** takes one command. Anything exposing
 `step(choke) -> (Q, WHP, FLP, BHP)` will do:
@@ -166,8 +175,14 @@ streamlit run app/streamlit_app.py          # interactive demo  -> localhost:850
 uvicorn service.api:app --port 8000         # HTTP service      -> localhost:8000/docs
 ```
 
-The demo exposes the MPC knobs live and audits each run against the envelope in
-front of you. The service wraps the calls a production system would actually make:
+The demo has three views. **Simulator** runs the closed loop live: pick a scenario,
+move the target, retune the MPC, and every run is audited against the envelope on
+the true plant state in front of you. **How it works** walks through the two
+layers. **Study results** reads the headline comparisons straight from `results/`.
+It starts from the committed identified model, so there is no identification
+step on a cold start.
+
+The service wraps the calls a production system would actually make:
 
 | | |
 |---|---|
@@ -180,6 +195,13 @@ front of you. The service wraps the calls a production system would actually mak
 disturbance estimate and the bad-data history carry between intervals. Driving the
 real plant through it over HTTP reproduces Scenario C exactly and computes each
 move in **0.75 – 1.2 ms**, which is where the timing claim above comes from.
+
+Sessions live in memory, capped in number and expired when idle
+(`CHOKE_MAX_SESSIONS`, default 256; `CHOKE_SESSION_TTL_S`, default 3600).
+Malformed input is rejected with a 422 that says where and why without echoing
+the value back, and server errors return a generic message while the detail goes
+to the server log. The service has **no authentication or rate limiting of its
+own**: put it behind a gateway that provides both before exposing it.
 
 Everything also runs in one container:
 
@@ -202,13 +224,16 @@ On one machine those cells come back bit-for-bit identical. Across machines they
 quite, and the honest version is more interesting than the tidy one: the nonlinear least
 squares in `identification.py` converges to a fractionally different point when numpy
 links a different BLAS, and that difference propagates into every table downstream.
-Measured Windows against the Linux CI runner, the largest relative disagreement anywhere
-in the 27 tables is **6.2e-8** — eight orders of magnitude below the two decimal places
-these results are ever quoted to. So CI asserts agreement to 1e-6 relative, about 16x
-tighter than the largest difference observed, and prints the figure it actually measured
-on every run.
+Measured Windows against a Linux runner with current numpy/scipy, the largest
+difference anywhere in the 27 tables is **8.6e-6 absolute** (on values in the
+thousands of psi, so 9e-9 relative). The awkward cells are elsewhere: a Monte-Carlo
+offset column holds values of ~6e-4 bbl/hr that differ by ~3e-9, which reads as
+5e-6 *relative*. A purely relative test therefore failed on floating-point noise a
+million times smaller than the two decimal places these results are quoted to, and
+the earlier CI runs did fail on exactly that. CI now asserts `|a - b| <= 1e-6 + 1e-6·|b|` in each table's own units and
+prints the largest absolute and relative differences it measured on every run.
 
-The same workflow re-runs all four test scripts on Python 3.10 and 3.12 on every
+The same workflow re-runs every test script on Python 3.10 and 3.12 on every
 push, so the headline numbers below cannot drift away from the code that produced
 them.
 
@@ -333,7 +358,7 @@ Scenario A starts the well at an 18 % choke — inside its envelope, at the low 
 Recovery from a state the envelope forbids is demonstrated *separately*
 (`figures/scenario_RECOVERY.png`): starting at a near-shut 10 % choke, BHP sits
 above its maximum-drawdown limit, the controller enters RECOVERY, is back inside
-the envelope in **5 h**, and then tracks 100 bbl/hr with zero further violations.
+the envelope in **6 h**, and then tracks 100 bbl/hr with zero further violations.
 It is kept out of the three required scenarios so that the headline "zero
 violations" needs no asterisk.
 
@@ -542,8 +567,8 @@ varying one knob at a time:
 
 | Knob | Setting | Settled rate | Choke travel | Verdict |
 |---|---|---|---|---|
-| Control horizon | M = 1 | 165.07 | **103.8** | worse — 2.5× the actuator wear |
-| | **M = 2** | 164.89 | **40.8** | **chosen** |
+| Control horizon | M = 1 | 164.90 | 40.2 | same result, but only 18 safe plans at the tightest interval |
+| | **M = 2** | 164.89 | **40.8** | **chosen** — 153 safe plans at the tightest interval |
 | | M = 3 | 164.89 | 40.8 | identical — the plan holds after move 2 |
 | Move suppression | w_move = 0 | 165.04 | **160.8** | 4× the travel for 0.15 bbl/hr |
 | | **w_move = 15** | 164.89 | **40.8** | **chosen** |

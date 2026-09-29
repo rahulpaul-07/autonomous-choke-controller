@@ -35,10 +35,14 @@ from __future__ import annotations
 import json
 import os
 import warnings
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy.optimize import brentq
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 # ------------------------------------------------------------------------------
 # Physical / calibrated parameters

@@ -7,3 +7,6 @@ figures_external
 results_external
 *.pdf
 *.pptx
+.venv
+.gstack
+.streamlit/secrets.toml
