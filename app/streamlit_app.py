@@ -43,8 +43,9 @@ TAGS = ("WHP", "FLP", "BHP")
 TAG_KEY = dict(zip(TAGS, OUTPUTS[1:]))
 TAG_NAME = {"WHP": "Wellhead pressure", "FLP": "Flowline pressure", "BHP": "Bottom-hole pressure"}
 
-C_PLANT, C_REQUEST, C_ACHIEVABLE = "#0B6FA4", "#374151", "#C2410C"
-C_LIMIT, C_BAND, C_CHOKE = "#B91C1C", "#16A34A", "#6D28D9"
+# Chosen for contrast on the dark theme in .streamlit/config.toml.
+C_PLANT, C_REQUEST, C_ACHIEVABLE = "#4FB3E8", "#D1D5DB", "#F59E0B"
+C_LIMIT, C_BAND, C_CHOKE = "#F87171", "#22C55E", "#A78BFA"
 
 st.set_page_config(
     page_title="Autonomous Choke Controller | Constrained MPC",
@@ -159,7 +160,7 @@ def trend_charts(df: pd.DataFrame, env: OperatingEnvelope) -> list:
         y_scale = alt.Scale(domain=[min(lo, vals.min()) - pad, max(hi, vals.max()) + pad],
                             nice=False, zero=False)
         band = alt.Chart(pd.DataFrame({"lo": [lo], "hi": [hi]})).mark_rect(
-            color=C_BAND, opacity=0.09).encode(y=alt.Y("lo:Q", scale=y_scale), y2="hi:Q")
+            color=C_BAND, opacity=0.13).encode(y=alt.Y("lo:Q", scale=y_scale), y2="hi:Q")
         rules = alt.Chart(pd.DataFrame({"limit": [lo, hi]})).mark_rule(
             color=C_LIMIT, strokeDash=[5, 4], strokeWidth=1.2).encode(
             y=alt.Y("limit:Q", scale=y_scale),

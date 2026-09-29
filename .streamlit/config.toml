@@ -11,8 +11,8 @@ runOnSave = false
 gatherUsageStats = false
 
 [theme]
-base = "light"
-primaryColor = "#0B6FA4"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F3F5F8"
-textColor = "#1F2937"
+base = "dark"
+primaryColor = "#4FB3E8"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1A1F2B"
+textColor = "#E6E8EB"
