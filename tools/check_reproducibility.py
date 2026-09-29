@@ -27,18 +27,22 @@ TIMING_COLUMN = re.compile(r"(\bms\b|_ms|ms_|_sec|_seconds|runtime|elapsed|wall|
 # On one machine the tables regenerate bit-for-bit. Across machines they do not
 # quite: the nonlinear least squares in identification.py converges to a very
 # slightly different point when numpy links a different BLAS, and that difference
-# propagates into every table downstream. Measured Windows against the Linux CI
-# runner, the worst relative disagreement is 6.2e-8 - eight orders of magnitude
-# below the two decimal places these results are ever quoted to.
+# propagates into every table downstream. Measured Windows against a Linux
+# runner, the largest difference is 8.6e-6 absolute (9e-9 relative, on values in
+# the thousands of psi), far below the two decimal places results are quoted to.
 #
-# So this asserts agreement to 1e-6 relative, about 16x tighter than the largest
-# difference actually observed, rather than a bit-equality it cannot honestly
-# expect. ATOL covers quantities that are legitimately zero (the identified
-# transport delay theta comes out at ~5.8e-18, where a relative test is meaningless).
+# So a cell passes when |a - b| <= ATOL + RTOL * |b|: 1e-6 relative, plus an
+# absolute floor of 1e-6 in the table's own units (bbl/hr, psi, %). The floor is
+# needed for quantities that sit near zero, where a relative test only measures
+# floating-point noise: the Monte-Carlo steady-state `offset` column holds values
+# of ~5.7e-4 bbl/hr that differ by ~3e-9 across platforms, 5e-6 relative but
+# a million times below the two decimal places anything is quoted to. With a
+# 1e-9 floor that noise failed CI on every push.
 RTOL = 1e-6
-ATOL = 1e-9
+ATOL = 1e-6
 
-WORST = [0.0]   # largest relative disagreement seen, for the summary line
+WORST = [0.0]      # largest relative disagreement among cells above the floor
+WORST_ABS = [0.0]  # largest absolute disagreement anywhere
 
 
 def compare_frame(name: str, a: pd.DataFrame, b: pd.DataFrame) -> tuple[int, int, list[str]]:
@@ -69,11 +73,14 @@ def compare_frame(name: str, a: pd.DataFrame, b: pd.DataFrame) -> tuple[int, int
             # Record how far apart the two runs actually are, so the summary
             # states the observed agreement rather than only that it passed.
             with np.errstate(invalid='ignore', divide='ignore'):
+                diff = np.abs(lv - rv)
                 scale = np.maximum(np.abs(lv), np.abs(rv))
-                rel = np.where(scale > ATOL, np.abs(lv - rv) / scale, 0.0)
-            rel = rel[np.isfinite(rel)]
+                rel = np.where(diff > ATOL, diff / scale, 0.0)
+            rel, diff = rel[np.isfinite(rel)], diff[np.isfinite(diff)]
             if rel.size:
                 WORST[0] = max(WORST[0], float(rel.max()))
+            if diff.size:
+                WORST_ABS[0] = max(WORST_ABS[0], float(diff.max()))
 
             if bad.any():
                 idx = int(np.argmax(bad))
@@ -140,7 +147,9 @@ def main(argv: list[str]) -> int:
     print(f"numeric cells compared : {total_numeric:,}")
     print(f"text cells compared    : {total_text:,}")
     print(f"timing columns skipped as machine-dependent : {TIMING_COLUMN.pattern}")
-    print(f"largest relative disagreement observed : {WORST[0]:.2e}  (tolerance {RTOL:.0e})")
+    print(f"tolerance : |a - b| <= {ATOL:.0e} + {RTOL:.0e} * |b|")
+    print(f"largest absolute disagreement observed : {WORST_ABS[0]:.2e}")
+    print(f"largest relative disagreement above the {ATOL:.0e} floor : {WORST[0]:.2e}")
 
     if problems:
         print("\nREPRODUCIBILITY CHECK FAILED\n")
@@ -148,11 +157,11 @@ def main(argv: list[str]) -> int:
             print("  " + p)
         return 1
 
-    if WORST[0] == 0.0:
+    if WORST_ABS[0] == 0.0:
         print("\nreproducibility check passed: every compared cell is bit-for-bit identical")
     else:
-        print(f"\nreproducibility check passed: every compared cell agrees to "
-              f"{WORST[0]:.1e} relative or better")
+        print(f"\nreproducibility check passed: largest difference {WORST_ABS[0]:.1e} "
+              f"absolute, within {ATOL:.0e} + {RTOL:.0e} x |value|")
     return 0
 
 
