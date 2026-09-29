@@ -1,0 +1,56 @@
+name: Keep the demo awake
+
+# Streamlit Community Cloud puts an app to sleep after a period without visitors,
+# and the next visitor then waits for a cold start. A real browser visit every
+# six hours keeps it warm; if it has already gone to sleep, this wakes it.
+# Note: GitHub pauses scheduled workflows in a repository with no activity for
+# 60 days; re-enable it from the Actions tab if that happens.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: true
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      APP_URL: https://autonomous-choke-controller-v1.streamlit.app
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install a headless browser
+        run: |
+          pip install "playwright>=1.47,<2"
+          python -m playwright install --with-deps chromium
+
+      - name: Visit the app, waking it if it is asleep
+        shell: python
+        run: |
+          import os, re
+          from playwright.sync_api import sync_playwright
+
+          url = os.environ["APP_URL"]
+          with sync_playwright() as p:
+              page = p.chromium.launch().new_page()
+              page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+              wake = page.get_by_role("button", name=re.compile("get this app back up", re.I))
+              try:
+                  wake.wait_for(timeout=10_000)
+                  print("App was asleep; waking it")
+                  wake.click()
+              except Exception:
+                  print("App was awake")
+              title = page.frame_locator('iframe[title="streamlitApp"]').get_by_text("Autonomous production choke controller")
+              title.first.wait_for(timeout=240_000)
+              print("App rendered")

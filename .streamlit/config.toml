@@ -1,0 +1,18 @@
+[client]
+# Hide the developer toolbar and never show tracebacks to visitors.
+toolbarMode = "viewer"
+showErrorDetails = "none"
+
+[server]
+headless = true
+runOnSave = false
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#0B6FA4"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F5F8"
+textColor = "#1F2937"
