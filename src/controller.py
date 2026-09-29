@@ -55,7 +55,8 @@ class MPCConfig:
 
     Ts: float = 1.0             # control interval                            [h]
     P: int = 40                 # prediction horizon (~3x slowest tau)    [steps]
-    M: int = 2                  # free moves in the candidate plan        [steps]
+    M: int = 2                  # free moves in the plan: 1, or 2 (then hold).
+                                # The plan is two-move-then-hold, so M > 2 = M 2.
     du_max: float = 5.0         # ramp-rate limit per interval                [%]
     u_min: float = 0.0
     u_max: float = 100.0
@@ -81,6 +82,35 @@ class MPCConfig:
     freeze_count: int = 5       # identical readings before a tag is called stale
     rate_margin: float = 2.5    # allowed rate of change, x the physical maximum
     hold_after: int = 3         # consecutive bad intervals before freezing the choke
+
+    def __post_init__(self) -> None:
+        """Reject a configuration the controller cannot run meaningfully."""
+        checks = {
+            "Ts must be > 0": self.Ts > 0,
+            "P must be >= 1": self.P >= 1,
+            "M must be >= 1": self.M >= 1,
+            "n1 and n2 must be >= 1": self.n1 >= 1 and self.n2 >= 1,
+            "du_max must be > 0": self.du_max > 0,
+            "u_min must be below u_max": self.u_min < self.u_max,
+            "weights must be >= 0": self.w_track >= 0 and self.w_move >= 0,
+            "backoff must be >= 0": self.backoff >= 0,
+            "backoff_frac must be in [0, 0.5)": 0.0 <= self.backoff_frac < 0.5,
+            "bias_gain must be in [0, 1]": 0.0 <= self.bias_gain <= 1.0,
+        }
+        failed = [msg for msg, ok in checks.items() if not ok]
+        if failed:
+            raise ValueError("invalid MPCConfig: " + "; ".join(failed))
+
+
+def _move_grid(du_max: float, n: int) -> np.ndarray:
+    """``n`` evenly spaced moves in [-du_max, du_max]; a one-point grid is "hold".
+
+    ``np.linspace(-a, a, 1)`` returns ``[-a]``, which would silently turn a
+    single-candidate grid into a forced full-rate closing move.
+    """
+    if n <= 1:
+        return np.zeros(1)
+    return np.linspace(-du_max, du_max, n)
 
 
 def backoffs(cfg: "MPCConfig", env: OperatingEnvelope) -> dict:
@@ -382,8 +412,10 @@ class ChokeMPC:
         free to defer action to move 2, which stalls the receding horizon.
         """
         cfg = self.cfg
-        g1 = np.linspace(-cfg.du_max, cfg.du_max, cfg.n1)
-        g2 = np.linspace(-cfg.du_max, cfg.du_max, cfg.n2)
+        g1 = _move_grid(cfg.du_max, cfg.n1)
+        # M = 1 means one free move and then hold, so the second move is zero.
+        # The plan is two-move-then-hold, so any M >= 2 uses the full grid.
+        g2 = np.zeros(1) if cfg.M <= 1 else _move_grid(cfg.du_max, cfg.n2)
         d1, d2 = np.meshgrid(g1, g2, indexing="ij")
         d1, d2 = d1.ravel(), d2.ravel()
 

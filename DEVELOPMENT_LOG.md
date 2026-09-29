@@ -241,6 +241,25 @@ This is the figure that makes the architecture visible rather than described.
 
 ---
 
+## Phase 13 — Post-submission audit: a tuning result that measured a bug
+
+The tuning table claimed a single-move plan (M = 1) cost 2.5× the actuator wear
+of M = 2. It did not. `MPCConfig.M` was never read by the controller; the study
+emulated M = 1 by shrinking the second-move grid to one point, and
+`np.linspace(-5, 5, 1)` is `[-5]`, not `[0]`. Every "single-move" plan therefore
+ended in a forced 5 % closing move, and the extra travel was that artefact.
+
+The fix makes a one-point grid mean "hold" and makes M = 1 an explicit
+zero second move. Re-measured, M = 1 and M = 2 settle at the same rate with the
+same travel (40.2 vs 40.8 %). M = 2 is still the right choice, but for a
+different reason than the one reported: at the tightest interval of Scenario C
+it keeps 153 safe plans against M = 1's 18, which is margin the feasibility
+screen can use when the model is wrong. `MPCConfig` now also rejects
+configurations the controller cannot run (non-positive horizon, negative
+weights, a filter gain outside [0, 1]).
+
+---
+
 ## What this process was, and was not
 
 **It was:** incremental, with a verification gate at each step; data-driven before

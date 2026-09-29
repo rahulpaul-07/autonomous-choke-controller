@@ -69,9 +69,9 @@ def run_step_test(
     # within the following limits". An open-loop step test is a commissioning
     # experiment, not the controller running, and the brief explicitly asks for
     # "choke STEP changes" - so the steps are applied as steps. Identification is
-    # insensitive to this either way: see tests/test_step_test_ramp.py, which
-    # repeats the identification with the ramp limit enforced and confirms the
-    # gains and time constants are unchanged to within a few percent.
+    # insensitive to this either way: tests/test_spec_compliance.py repeats the
+    # identification with the ramp limit enforced and confirms the gains and time
+    # constants are unchanged to within 5 %.
     if sim_factory is None:
         sim = WellSimulator(u0=u0, noise=noise, seed=seed, enforce_ramp=False)
     else:
@@ -208,6 +208,31 @@ def identify(df: pd.DataFrame, Ts: float = 1.0) -> PlantModel:
             r2=float(1 - np.sum(e**2) / np.sum((ym - ym.mean()) ** 2)),
         )
     return PlantModel(channels)
+
+
+MODEL_FIELDS = ("a0", "a1", "a2", "tau", "theta", "rmse", "r2")
+
+
+def load_model(path: str) -> PlantModel:
+    """
+    Load a model written by ``PlantModel.summary().to_csv(path)``.
+
+    The study commits ``results/identified_model.csv``, so the demo and the HTTP
+    service start from that exact model instead of repeating the step test and
+    the fit on every cold start. Raises ``ValueError`` if the file is not a
+    complete, finite four-channel model, so a bad file is never used silently.
+    """
+    df = pd.read_csv(path, index_col="name")
+    missing = [c for c in MODEL_FIELDS if c not in df.columns]
+    if missing or set(df.index) != set(OUTPUTS):
+        raise ValueError(f"{path} is not a four-channel model (missing: {missing})")
+    values = df.loc[OUTPUTS, list(MODEL_FIELDS)].to_numpy(dtype=float)
+    if not np.isfinite(values).all() or (df["tau"] <= 0).any():
+        raise ValueError(f"{path} contains non-finite parameters or a non-positive tau")
+    return PlantModel({
+        key: ChannelModel(name=key, **{f: float(df.at[key, f]) for f in MODEL_FIELDS})
+        for key in OUTPUTS
+    })
 
 
 def cross_validate(model: PlantModel, df: pd.DataFrame, Ts: float = 1.0) -> pd.DataFrame:

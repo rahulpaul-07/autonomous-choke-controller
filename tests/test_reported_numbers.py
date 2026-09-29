@@ -43,9 +43,9 @@ def main():
           100 * kpi.loc["C", "final_rate_mean"] / cap, 99.2, 0.005)
     check("recovery: hours to re-enter the envelope",
           pd.read_csv(os.path.join(RES, "scenario_RECOVERY.csv")).pipe(
-              lambda d: next(i for i, r in d.iterrows()
+              lambda d: next(r.Time_hr for _, r in d.iterrows()
                              if not OperatingEnvelope.load().violations(
-                                 r.WHP_true, r.FLP_true, r.BHP_true))), 5, 0.01)
+                                 r.WHP_true, r.FLP_true, r.BHP_true))), 6, 0.01)
     for tag, rate in (("A", 100.2), ("B", 150.2), ("C", 164.9)):
         check(f"scenario {tag}: settled rate", kpi.loc[tag, "final_rate_mean"], rate, 0.01)
         check(f"scenario {tag}: constraint violations",
@@ -106,7 +106,9 @@ def main():
     feas = pd.read_csv(os.path.join(RES, "recursive_feasibility.csv"))
     m1 = tune[(tune.knob == "control horizon M") & (tune.value == 1)].iloc[0]
     m2 = tune[(tune.knob == "control horizon M") & (tune.value == 2)].iloc[0]
-    check("M=1 total choke travel", m1.total_choke_travel, 103.8, 0.02)
+    check("M=1 total choke travel", m1.total_choke_travel, 40.2, 0.02)
+    check("M=1 smallest feasible set", m1.min_feasible_candidates, 18, 0.001)
+    check("M=2 smallest feasible set", m2.min_feasible_candidates, 153, 0.001)
     check("M=2 total choke travel", m2.total_choke_travel, 40.8, 0.02)
     w0 = tune[(tune.knob == "move suppression w_move") & (tune.value == 0)].iloc[0]
     check("w_move=0 total choke travel", w0.total_choke_travel, 160.8, 0.02)

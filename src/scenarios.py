@@ -221,11 +221,13 @@ def main(save: bool = True, verbose: bool = True) -> dict:
                      if not ENV.violations(r.WHP_true, r.FLP_true, r.BHP_true)), None)
     results["RECOVERY"] = df_rec
     summary["RECOVERY"] = kpis(df_rec, warmup=int(first_ok or 0))
-    summary["RECOVERY"]["hours_to_re_enter_envelope"] = float(first_ok)
+    # first_ok is a row index; row i is the plant state at the END of hour i + 1
+    summary["RECOVERY"]["hours_to_re_enter_envelope"] = float(df_rec.Time_hr.iloc[first_ok])
     if verbose:
-        print(f"\n=== Extra demonstration — recovery from OUTSIDE the envelope ===")
-        print(f"  starts at choke 10 % where BHP exceeds its maximum-drawdown limit")
-        print(f"  back inside the envelope after : {first_ok} h")
+        print("\n=== Extra demonstration — recovery from OUTSIDE the envelope ===")
+        print("  starts at choke 10 % where BHP exceeds its maximum-drawdown limit")
+        print(f"  back inside the envelope after : "
+              f"{summary['RECOVERY']['hours_to_re_enter_envelope']:g} h")
         print(f"  violations after re-entry      : "
               f"{summary['RECOVERY']['constraint_violations_true']}")
         print(f"  settles at                     : "
