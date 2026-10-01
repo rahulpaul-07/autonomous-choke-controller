@@ -385,7 +385,7 @@ writing:
 > Problem Statement** regarding the simulator.
 
 So the simulator is a graded deliverable, not a gap. Ours (`src/simulator.py`,
-448 lines, full source included) solves four coupled equations for the steady
+570 lines, full source included) solves four coupled equations for the steady
 state at every step rather than curve-fitting the supplied CSV:
 
 | | |
